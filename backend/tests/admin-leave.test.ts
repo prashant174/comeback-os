@@ -219,3 +219,54 @@ describe('leave days', () => {
     expect(weekdayOf(today())).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe('review fixes', () => {
+  it('a disabled user loses access on the next request, not after the token expires', async () => {
+    const adminTok = await adminToken();
+    const f = await registerUser();
+    expect((await request(app).get('/api/dashboard').set(auth(f.token))).status).toBe(200);
+    await request(app).patch(`/api/admin/users/${f.res.body.data.user._id}`).set(auth(adminTok)).send({ isActive: false });
+    const r = await request(app).get('/api/dashboard').set(auth(f.token)); // same, still-unexpired access token
+    expect(r.status).toBe(401);
+    expect(r.body.error.message).toMatch(/disabled/);
+  });
+
+  it('feedback: testers send, admin reviews and resolves, users see the status', async () => {
+    const adminTok = await adminToken();
+    const f = await registerUser();
+    const bad = await request(app).post('/api/feedback').set(auth(f.token)).send({ message: 'hi' });
+    expect(bad.status).toBe(400);
+    const sent = await request(app).post('/api/feedback').set(auth(f.token)).send({ type: 'bug', message: 'Water button does nothing on iPhone', page: '/water' });
+    expect(sent.status).toBe(201);
+    expect((await request(app).post('/api/feedback').set(auth(adminTok)).send({ message: 'admin has no tracker' })).status).toBe(403);
+    expect((await request(app).get('/api/admin/feedback').set(auth(f.token))).status).toBe(403);
+
+    const list = await request(app).get('/api/admin/feedback').set(auth(adminTok));
+    expect(list.body.meta.open).toBe(1);
+    expect(list.body.data[0].user.email).toBe(f.body.email.toLowerCase());
+    const id = list.body.data[0]._id;
+    await request(app).patch(`/api/admin/feedback/${id}`).set(auth(adminTok)).send({ status: 'resolved', adminNote: 'Fixed in next deploy' });
+    const mine = await request(app).get('/api/feedback/mine').set(auth(f.token));
+    expect(mine.body.data[0]).toMatchObject({ status: 'resolved', adminNote: 'Fixed in next deploy' });
+    expect((await request(app).get('/api/admin/feedback').set(auth(adminTok))).body.meta.open).toBe(0);
+  });
+});
+
+describe('admin bootstrap with a shared database', () => {
+  it('a server without admin config (or with a weak password) never demotes the real admin', async () => {
+    await adminToken(); // creates the admin from env
+    const { UserModel } = await import('../src/models/User.js');
+    const saved = { email: env.ADMIN_EMAIL, password: env.ADMIN_PASSWORD };
+    try {
+      env.ADMIN_EMAIL = undefined; env.ADMIN_PASSWORD = undefined; // e.g. Render with no env vars set
+      await ensureAdminAccount();
+      expect((await UserModel.findOne({ email: ADMIN.email }))!.role).toBe('admin');
+      env.ADMIN_EMAIL = 'other@cbos.dev'; env.ADMIN_PASSWORD = 'short1'; // misconfigured server
+      await ensureAdminAccount();
+      expect((await UserModel.findOne({ email: ADMIN.email }))!.role).toBe('admin');
+      expect(await UserModel.exists({ email: 'other@cbos.dev' })).toBeNull();
+    } finally {
+      env.ADMIN_EMAIL = saved.email; env.ADMIN_PASSWORD = saved.password;
+    }
+  });
+});

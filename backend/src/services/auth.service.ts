@@ -97,15 +97,21 @@ export async function resetPassword(token: string, password: string) {
 export async function ensureAdminAccount() {
   const email = env.ADMIN_EMAIL;
   const password = env.ADMIN_PASSWORD;
-  // Older versions made the first registered user an admin. That personal account
-  // becomes a regular user again so it keeps its tracker; only ADMIN_EMAIL is admin.
-  const demoted = await UserModel.updateMany({ role: 'admin', ...(email ? { email: { $ne: email } } : {}) }, { $set: { role: 'user' } });
-  if (demoted.modifiedCount) logger.info('Converted legacy admin account(s) to regular users', { count: demoted.modifiedCount });
-  if (!email || !password) return null;
-  if (password.length < 12 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-    logger.error('ADMIN_PASSWORD must be at least 12 characters with letters and numbers — admin account not created');
+  // A server without admin config must not touch roles: several servers (laptop +
+  // Render) can share one database, and an unconfigured one would otherwise
+  // demote the real admin on every restart.
+  if (!email || !password) {
+    logger.warn('ADMIN_EMAIL / ADMIN_PASSWORD not set — admin account left unchanged');
     return null;
   }
+  if (password.length < 12 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    logger.error('ADMIN_PASSWORD must be at least 12 characters with letters and numbers — admin account left unchanged');
+    return null;
+  }
+  // Older versions made the first registered user an admin. That personal account
+  // becomes a regular user again so it keeps its tracker; only ADMIN_EMAIL is admin.
+  const demoted = await UserModel.updateMany({ role: 'admin', email: { $ne: email } }, { $set: { role: 'user' } });
+  if (demoted.modifiedCount) logger.info('Converted legacy admin account(s) to regular users', { count: demoted.modifiedCount });
   const existing = await UserModel.findOne({ email }).select('+passwordHash');
   if (!existing) {
     const admin = await UserModel.create({ name: 'Admin', email, role: 'admin', passwordHash: await bcrypt.hash(password, SALT_ROUNDS) });
