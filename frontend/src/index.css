@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: 100 14% 96%;
+    --surface: 0 0% 100%;
+    --sunken: 100 12% 93%;
+    --ink: 150 20% 10%;
+    --muted: 145 6% 39%;
+    --line: 120 8% 88%;
+    --leaf: 152 67% 37%;
+    --leaf-soft: 150 50% 92%;
+    --leaf-ink: 152 70% 22%;
+    --water: 206 80% 46%;
+    --water-soft: 205 80% 93%;
+    --amber: 36 90% 48%;
+    --danger: 2 70% 50%;
+    --danger-soft: 2 80% 95%;
+    color-scheme: light;
+  }
+  .dark {
+    --bg: 150 14% 6%;
+    --surface: 152 13% 9.5%;
+    --sunken: 150 14% 4.5%;
+    --ink: 140 15% 92%;
+    --muted: 145 7% 58%;
+    --line: 150 10% 16%;
+    --leaf: 151 58% 48%;
+    --leaf-soft: 152 40% 14%;
+    --leaf-ink: 150 60% 72%;
+    --water: 204 85% 60%;
+    --water-soft: 206 50% 15%;
+    --amber: 38 92% 56%;
+    --danger: 2 75% 62%;
+    --danger-soft: 2 40% 15%;
+    color-scheme: dark;
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-bg text-ink font-sans antialiased; }
+  h1, h2, h3 { @apply font-display tracking-tight; }
+  .num { font-variant-numeric: tabular-nums; }
+  :focus-visible { @apply outline-none ring-2 ring-leaf ring-offset-2 ring-offset-bg; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+@layer components {
+  .panel { @apply bg-surface border border-line rounded-2xl; }
+  .field-label { @apply text-sm font-medium text-ink; }
+  .hint { @apply text-xs text-muted; }
+}
+
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+
+/* Print / "Save as PDF" (Analytics report) */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  :root, .dark {
+    --bg: 0 0% 100%; --surface: 0 0% 100%; --sunken: 100 12% 94%; --ink: 150 20% 10%;
+    --muted: 145 6% 35%; --line: 120 8% 85%; color-scheme: light;
+  }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main { padding: 0 !important; max-width: none !important; }
+  .panel { break-inside: avoid; box-shadow: none; }
+  nav, header, [data-sonner-toaster] { display: none !important; }
+}

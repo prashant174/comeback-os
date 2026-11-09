@@ -1,0 +1,38 @@
+# Render Blueprint — one free web service serving the API + the built PWA.
+# Dashboard → New → Blueprint → pick this repo. Fill the two "sync: false" values when asked.
+services:
+  - type: web
+    name: comeback-os
+    runtime: node
+    plan: free
+    region: singapore           # closest free region to India
+    branch: main
+    buildCommand: >-
+      npm ci --include=dev --prefix frontend &&
+      npm run build --prefix frontend &&
+      npm ci --include=dev --prefix backend &&
+      npm run build --prefix backend
+    startCommand: cd backend && node dist/server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: MONGO_URI
+        sync: false             # paste your MongoDB Atlas connection string
+      - key: CLIENT_URL
+        sync: false             # your Render URL, e.g. https://comeback-os.onrender.com
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ALLOW_REGISTRATION
+        value: "true"           # set to "false" after you create your account
+      - key: TRUST_PROXY
+        value: "1"
+      - key: FRONTEND_DIST
+        value: ../frontend/dist
