@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import * as DM from '@radix-ui/react-dropdown-menu';
-import { ChevronsLeft, ChevronsRight, LayoutGrid, LogOut, Moon, Sun, Monitor, UserRound } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, LayoutGrid, LogOut, Megaphone, Moon, Sun, Monitor, UserRound, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { authApi } from '@/services/auth.service';
 import { NotificationBell } from './NotificationBell';
 import { AuthedImage } from '@/components/AuthedImage';
 import { Dialog } from '@/components/ui/dialog';
@@ -55,6 +57,20 @@ function ProfileMenu() {
         </DM.Content>
       </DM.Portal>
     </DM.Root>
+  );
+}
+
+function AnnouncementBanner() {
+  const q = useQuery({ queryKey: ['auth-config'], queryFn: authApi.config, staleTime: 5 * 60_000 });
+  const a = q.data?.announcement;
+  const [hidden, setHidden] = useState(() => { try { return sessionStorage.getItem('cbos-ann-hidden') ?? ''; } catch { return ''; } });
+  if (!a || hidden === a.text) return null;
+  return (
+    <div role="status" className={cn('mx-4 sm:mx-6 lg:mx-8 mt-3 rounded-xl px-4 py-2.5 text-sm flex items-start gap-3', a.tone === 'warning' ? 'bg-amber/15 text-ink' : 'bg-water-soft text-ink')}>
+      <Megaphone className={cn('h-4 w-4 mt-0.5 shrink-0', a.tone === 'warning' ? 'text-amber' : 'text-water')} />
+      <p className="flex-1">{a.text}</p>
+      <button aria-label="Dismiss announcement" className="text-muted hover:text-ink" onClick={() => { try { sessionStorage.setItem('cbos-ann-hidden', a.text); } catch { /* ignore */ } setHidden(a.text); }}><X className="h-4 w-4" /></button>
+    </div>
   );
 }
 
@@ -115,6 +131,7 @@ export function AppLayout() {
             <ProfileMenu />
           </div>
         </header>
+        <AnnouncementBanner />
         <main key={loc.pathname} className="flex-1 px-4 sm:px-6 lg:px-8 py-5 sm:py-7 pb-28 md:pb-10 w-full max-w-[1240px] mx-auto">
           <Outlet />
         </main>

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAdmin, requireAuth, requireMember } from '../middleware/auth.js';
+import adminRoutes from './admin.routes.js';
 import { ensureSeeded } from '../middleware/seed.js';
 import authRoutes from './auth.routes.js';
 import settingsRoutes from './settings.routes.js';
@@ -28,7 +29,8 @@ api.use('/auth', authRoutes);
 // Each also lazily seeds starter data for modules the user hasn't used yet.
 const PROTECTED = ['/settings', '/habits', '/water', '/dashboard', '/routines', '/fitness', '/nutrition', '/learning',
   '/finance', '/grooming', '/sleep', '/goals', '/journal', '/reminders', '/notifications', '/analytics'];
-api.use(PROTECTED, requireAuth, ensureSeeded);
+api.use(PROTECTED, requireAuth, requireMember, ensureSeeded);
+api.use('/admin', requireAuth, requireAdmin, adminRoutes);
 const authed = Router();
 authed.use('/settings', settingsRoutes);
 authed.use('/habits', habitRoutes);

@@ -1,5 +1,6 @@
 import { ReminderModel, NotificationModel } from '../models/notify.js';
 import { UserProfileModel } from '../models/UserProfile.js';
+import { DayOverrideModel } from '../models/routine.js';
 import { dayKey } from '../utils/date.js';
 import { nowIn } from '../utils/time.js';
 import { logger } from '../utils/logger.js';
@@ -26,6 +27,10 @@ export async function runRemindersTick(now = new Date()) {
     const [h, m] = r.time.split(':').map(Number);
     const due = h * 60 + m;
     if (!r.days.includes(weekday) || r.lastFiredDate === today || minutes < due || minutes > due + 30) continue;
+    if (r.skipOnLeave && (await DayOverrideModel.exists({ user: r.user, date: today, type: { $in: ['leave', 'holiday', 'sick', 'travel'] } }))) {
+      await ReminderModel.updateOne({ _id: r._id }, { lastFiredDate: today }); // skipped for today
+      continue;
+    }
     const key = `reminder:${r._id}:${today}`;
     const res = await NotificationModel.updateOne(
       { user: r.user, dedupeKey: key },

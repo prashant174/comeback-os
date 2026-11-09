@@ -4,7 +4,10 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { CalendarClock, Check, GripVertical, Pencil, Plus, SkipForward, Trash2, X } from 'lucide-react';
+import { CalendarClock, CalendarOff, Check, GripVertical, Pencil, Plus, SkipForward, Trash2, Undo2, X } from 'lucide-react';
+import { api } from '@/lib/api';
+import { LeaveDialog, DAY_TYPE_LABEL } from './LeaveDialog';
+import { addDays, prettyDate } from '@/lib/date';
 import { get, put } from '@/lib/resource';
 import { apiError } from '@/lib/api';
 import { useList, useResourceMutations, useToday } from '@/hooks/useResource';
@@ -35,13 +38,31 @@ function TodayTab() {
     onError: (e) => toast.error(apiError(e)),
   });
   const saveNote = useMutation({ mutationFn: () => put(`/routines/day/${date}/note`, { note }), onSuccess: () => toast.success('Note saved'), onError: (e) => toast.error(apiError(e)) });
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const undoLeave = useMutation({
+    mutationFn: (group: boolean) => api.delete(`/routines/overrides/${date}`, { params: { group } }),
+    onSuccess: () => { ['routine-day', 'routine-overrides', 'dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); toast.success('Back to the normal routine'); },
+    onError: (e) => toast.error(apiError(e)),
+  });
 
   const d = q.data;
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-5 items-start">
-      <Panel title={d?.routine ? `${dateTitle(date, today)} · ${d.routine.name}` : dateTitle(date, today)} action={<DateNav date={date} onChange={setDate} max={today} />}>
+      {d?.override && (
+        <div className="lg:col-span-2 panel border-amber/40 bg-amber/10 px-4 py-3 flex flex-wrap items-center gap-3">
+          <CalendarOff className="h-5 w-5 text-amber shrink-0" />
+          <p className="text-sm flex-1 min-w-[200px]"><b>{DAY_TYPE_LABEL[d.override.type] ?? 'Leave'}</b> {date === today ? 'today' : 'on this day'}{d.override.note ? ` — ${d.override.note}` : ''}. {d.routine ? <>Following <b>{d.routine.name}</b> instead of the usual routine.</> : 'No routine planned.'}</p>
+          <Button size="sm" variant="outline" onClick={() => undoLeave.mutate(false)} loading={undoLeave.isPending}><Undo2 className="h-4 w-4" />Undo this day</Button>
+        </div>
+      )}
+      <Panel title={d?.routine ? `${dateTitle(date, today)} · ${d.routine.name}` : dateTitle(date, today)} action={
+        <div className="flex flex-wrap items-center gap-2">
+          {!d?.override && <Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}><CalendarOff className="h-4 w-4" />Mark leave</Button>}
+          <DateNav date={date} onChange={setDate} max={addDays(today, 60)} />
+        </div>}>
         {q.isLoading ? <Skeleton className="h-64" /> : !d?.routine ? (
-          <EmptyState icon={<CalendarClock className="h-6 w-6" />} title="No routine for this day" body="Create a routine and assign it to this weekday in the Routines tab." />
+          d?.override ? <EmptyState icon={<CalendarOff className="h-6 w-6" />} title="Free day" body="Nothing scheduled. Enjoy the break — habits and water still count." />
+          : <EmptyState icon={<CalendarClock className="h-6 w-6" />} title="No routine for this day" body="Create a routine and assign it to this weekday in the Routines tab." />
         ) : (
           <ol className="divide-y divide-line -mx-5">
             {d.activities.map((a) => (
@@ -81,7 +102,42 @@ function TodayTab() {
           <Button size="sm" className="mt-2" loading={saveNote.isPending} onClick={() => saveNote.mutate()} disabled={note === (d?.note ?? '')}>Save note</Button>
         </Panel>
       </div>
+      <LeaveDialog open={leaveOpen} onOpenChange={setLeaveOpen} date={date} />
     </div>
+  );
+}
+
+/* ---------------- Upcoming leaves ---------------- */
+type OverrideRow = { _id: string; date: string; type: string; note: string; groupId: string | null; routine: { name: string } | null };
+function UpcomingLeaves() {
+  const today = useToday();
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ['routine-overrides'], queryFn: () => get<OverrideRow[]>('/routines/overrides', { from: today }) });
+  const del = useMutation({
+    mutationFn: (date: string) => api.delete(`/routines/overrides/${date}`, { params: { group: true } }),
+    onSuccess: () => ['routine-day', 'routine-overrides', 'dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })),
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const [open, setOpen] = useState(false);
+  const groups = Object.values((q.data ?? []).reduce<Record<string, OverrideRow[]>>((a, o) => { (a[o.groupId ?? o._id] ??= []).push(o); return a; }, {}));
+  return (
+    <Panel title="Leaves & holidays" className="mt-5" action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><CalendarOff className="h-4 w-4" />Mark leave</Button>}>
+      {!groups.length ? <p className="text-sm text-muted">No upcoming leaves. On a leave day the “Leave day” routine replaces your weekday one.</p> : (
+        <ul className="divide-y divide-line -mx-5">
+          {groups.map((g) => (
+            <li key={g[0]._id} className="flex items-center gap-3 px-5 py-2.5">
+              <Chip tone="amber">{DAY_TYPE_LABEL[g[0].type]}</Chip>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm">{prettyDate(g[0].date, { weekday: 'short', day: 'numeric', month: 'short' })}{g.length > 1 ? ` → ${prettyDate(g[g.length - 1].date, { weekday: 'short', day: 'numeric', month: 'short' })} · ${g.length} days` : ''}</p>
+                <p className="text-xs text-muted truncate">{g[0].routine?.name ?? 'Free day'}{g[0].note ? ` · ${g[0].note}` : ''}</p>
+              </div>
+              <Button variant="ghost" size="icon" aria-label="Remove leave" onClick={() => del.mutate(g[0].date)}><Trash2 className="h-4 w-4 text-muted" /></Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <LeaveDialog open={open} onOpenChange={setOpen} date={today} />
+    </Panel>
   );
 }
 
@@ -89,7 +145,7 @@ function TodayTab() {
 const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'HH:MM');
 const schema = z.object({
   name: z.string().trim().min(1, 'Required').max(60),
-  days: z.array(z.number()).min(1, 'Pick at least one day'),
+  days: z.array(z.number()), // empty = on-demand (used for leave days)
   isActive: z.boolean(),
   activities: z.array(z.object({
     _id: z.string().optional(), title: z.string().trim().min(1, 'Required').max(80), start: hhmm, end: hhmm,
@@ -148,7 +204,7 @@ function RoutineEditor({ open, onOpenChange, routine }: { open: boolean; onOpenC
                   className={cn('h-9 w-9 rounded-lg text-sm font-medium border', field.value?.includes(i) ? 'bg-leaf text-white border-leaf dark:text-[#06140D]' : 'border-line text-muted hover:bg-sunken')}>{d}</button>
               ))}
             </div>
-            {errors.days && <p className="text-xs text-danger mt-1">{errors.days.message}</p>}
+            <p className="hint mt-1">Pick no days for an on-demand routine you only use on leave/holidays.</p>
           </fieldset>
         )} />
         <div>
@@ -204,7 +260,8 @@ function RoutinesTab() {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-semibold">{r.name}</h3>
-                  <div className="flex gap-1 mt-2">{DAY_LETTER.map((d, i) => <span key={i} className={cn('h-6 w-6 rounded-md text-[11px] grid place-items-center', r.days.includes(i) ? 'bg-leaf-soft text-leaf-ink font-semibold' : 'text-muted/50')}>{d}</span>)}</div>
+                  {r.days.length === 0 ? <Chip tone="amber" className="mt-2">On demand · leave days</Chip>
+                    : <div className="flex gap-1 mt-2">{DAY_LETTER.map((d, i) => <span key={i} className={cn('h-6 w-6 rounded-md text-[11px] grid place-items-center', r.days.includes(i) ? 'bg-leaf-soft text-leaf-ink font-semibold' : 'text-muted/50')}>{d}</span>)}</div>}
                 </div>
                 <div className="flex">
                   <Button variant="ghost" size="icon" aria-label={`Edit ${r.name}`} onClick={() => { setEdit(r); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
@@ -221,6 +278,7 @@ function RoutinesTab() {
           ))}
         </div>
       )}
+      <UpcomingLeaves />
       <RoutineEditor open={open} onOpenChange={setOpen} routine={edit} />
       <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} title={`Delete “${del?.name}”?`} description="Days it covered will have no routine until you assign another."
         confirmLabel="Delete routine" loading={m.remove.isPending} onConfirm={async () => { if (del) await m.remove.mutateAsync(del._id); setDel(null); }} />

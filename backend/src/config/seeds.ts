@@ -134,8 +134,8 @@ export const SEED_GOALS = [
 ];
 
 export const SEED_REMINDERS = [
-  { title: 'Wake up', type: 'wake', time: '06:15' },
-  { title: 'Workout time', type: 'workout', time: '06:25' },
+  { title: 'Wake up', type: 'wake', time: '06:15', skipOnLeave: true },
+  { title: 'Workout time', type: 'workout', time: '06:25', skipOnLeave: true },
   { title: 'Study session', type: 'study', time: '07:15' },
   { title: 'Breakfast', type: 'meal', time: '08:00' },
   { title: 'Drink water', type: 'water', time: '11:00' },
@@ -165,3 +165,16 @@ export const WEEKEND_ROUTINES = {
     { title: 'Sleep', start: '22:45', end: '22:55', category: 'sleep', priority: 'high' },
   ],
 };
+
+/** On-demand routine (no weekdays) used when a day is marked as leave/holiday. */
+export const LEAVE_ROUTINE = [
+  { title: 'Wake up (no alarm)', start: '07:30', end: '07:40', category: 'routine', priority: 'low' },
+  { title: 'Workout + stretching', start: '08:00', end: '08:45', category: 'fitness', priority: 'high' },
+  { title: 'Breakfast', start: '09:00', end: '09:30', category: 'meal', priority: 'medium' },
+  { title: 'Deep learning block (Python)', start: '10:00', end: '12:00', category: 'learning', priority: 'high' },
+  { title: 'Lunch + rest', start: '13:00', end: '14:30', category: 'meal', priority: 'low' },
+  { title: 'Project work', start: '15:00', end: '17:00', category: 'learning', priority: 'medium' },
+  { title: 'Walk / outdoor time', start: '17:30', end: '18:30', category: 'fitness', priority: 'medium' },
+  { title: 'Grooming + next-day prep', start: '20:00', end: '20:30', category: 'grooming', priority: 'low' },
+  { title: 'Sleep', start: '23:00', end: '23:10', category: 'sleep', priority: 'high' },
+];

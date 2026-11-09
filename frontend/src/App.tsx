@@ -23,16 +23,21 @@ const SleepPage = lazy(() => import('@/features/sleep/SleepPage'));
 const GoalsPage = lazy(() => import('@/features/goals/GoalsPage'));
 const JournalPage = lazy(() => import('@/features/journal/JournalPage'));
 const AnalyticsPage = lazy(() => import('@/features/analytics/AnalyticsPage'));
+const AdminPage = lazy(() => import('@/features/admin/AdminPage'));
+import { AdminLayout } from '@/components/layout/AdminLayout';
 
 function Splash() {
   return <div className="min-h-dvh grid place-items-center"><div className="animate-pulse"><Logo /></div></div>;
 }
 
-function Protected({ children }: { children: ReactNode }) {
-  const { status } = useAuth();
+function Protected({ children, role = 'user' }: { children: ReactNode; role?: 'user' | 'admin' }) {
+  const { status, user } = useAuth();
   const loc = useLocation();
   if (status === 'loading') return <Splash />;
   if (status === 'anonymous') return <Navigate to="/login" replace state={{ from: loc.pathname + loc.search }} />;
+  // the admin account only has the admin panel; regular users can't open it
+  if (user?.role === 'admin' && role !== 'admin') return <Navigate to="/admin" replace />;
+  if (user?.role !== 'admin' && role === 'admin') return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -52,6 +57,9 @@ export default function App() {
           <Route path="/register" element={<PublicOnly><RegisterPage /></PublicOnly>} />
           <Route path="/forgot-password" element={<PublicOnly><ForgotPasswordPage /></PublicOnly>} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/admin" element={<Protected role="admin"><AdminLayout /></Protected>}>
+            <Route index element={<AdminPage />} />
+          </Route>
           <Route element={<Protected><AppLayout /></Protected>}>
             <Route index element={<DashboardPage />} />
             <Route path="habits" element={<HabitsPage />} />

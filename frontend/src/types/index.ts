@@ -39,7 +39,7 @@ export type Dashboard = {
   personal: Profile['personal'];
   weekly: { date: string; habitPct: number; waterMl: number }[];
   widgets: Widget[];
-  routine: { name: string | null; activities: { _id: string; title: string; start: string; end: string; status: string | null; isNow: boolean }[]; stats: { total: number; done: number; missed: number } };
+  routine: { override: DayOverride | null; name: string | null; activities: { _id: string; title: string; start: string; end: string; status: string | null; isNow: boolean }[]; stats: { total: number; done: number; missed: number } };
   workout: { title: string | null; focus: string; exercises: number; isRest: boolean; done: boolean; minutes: number };
   nutrition: Macros & { proteinMinG: number; proteinMaxG: number; hasEstimates: boolean };
   study: { minutes: number; targetMinutes: number };
@@ -52,8 +52,9 @@ export type Dashboard = {
 export type Priority = 'low' | 'medium' | 'high';
 export type Activity = { _id: string; title: string; start: string; end: string; priority: Priority; category: string; notes: string };
 export type Routine = { _id: string; name: string; days: number[]; isActive: boolean; activities: Activity[]; order: number };
+export type DayOverride = { _id: string; type: string; note: string; groupId: string | null };
 export type RoutineDay = {
-  date: string; routine: { _id: string; name: string } | null; note: string;
+  date: string; routine: { _id: string; name: string } | null; note: string; override: DayOverride | null;
   activities: (Activity & { status: 'done' | 'missed' | 'skipped' | null; explicit: boolean; isNow: boolean })[];
   stats: { total: number; done: number; missed: number };
 };
@@ -90,5 +91,5 @@ export type Outfit = { _id: string; date: string; items: string[]; note: string 
 export type SleepRecord = { _id: string; date: string; bedtime: string; wakeTime: string; durationMin: number; quality: number; notes: string };
 export type Goal = { _id: string; title: string; description: string; category: string; horizon: 30 | 60 | 90; startDate: string; deadline: string; priority: Priority; status: 'active' | 'completed' | 'paused' | 'dropped'; progress: number; milestones: { _id?: string; title: string; done: boolean; dueDate?: string | null }[] };
 export type JournalEntry = { _id: string; date: string; mood: number; achievements: string; challenges: string; reflection: string; ideas: string; tags: string[] };
-export type Reminder = { _id: string; title: string; type: string; time: string; days: number[]; enabled: boolean };
+export type Reminder = { _id: string; title: string; type: string; time: string; days: number[]; enabled: boolean; skipOnLeave: boolean };
 export type AppNotification = { _id: string; title: string; body: string; kind: string; link: string | null; readAt: string | null; createdAt: string };

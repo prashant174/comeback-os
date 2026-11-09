@@ -22,7 +22,7 @@ export default function LoginPage() {
   const onSubmit = handleSubmit(async (v) => {
     try {
       await login(v.email, v.password);
-      nav(loc.state?.from ?? '/', { replace: true });
+      nav(loc.state?.from && loc.state.from !== '/admin' ? loc.state.from : '/', { replace: true }); // admins are redirected to /admin
     } catch (e) {
       toast.error(apiError(e, 'Could not log in'));
     }

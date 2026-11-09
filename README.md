@@ -51,8 +51,9 @@ Services: `mongo` (volume `mongo_data`), `backend` (Node, port 5000 internal), `
 | ACCESS_TOKEN_TTL | 15m | |
 | REFRESH_TOKEN_TTL_DAYS | 30 | |
 | CLIENT_URL | http://localhost:5173 | CORS allow-list, comma separated; also used in reset links |
-| ALLOW_REGISTRATION | true | first user can always register |
+| ALLOW_REGISTRATION | true | default for public sign-ups; the admin panel can override it at runtime |
 | COOKIE_SECURE | false | set `true` behind HTTPS |
+| ADMIN_EMAIL / ADMIN_PASSWORD | — | separate admin login for `/admin` (created at startup; password 12+ chars). Leave empty to disable the admin panel |
 | TRUST_PROXY | 1 | proxies in front of the API (Render/Nginx = 1) |
 | FRONTEND_DIST | — | path to `frontend/dist` to serve the app from the API (single-origin deploy; auto in production) |
 
@@ -63,7 +64,7 @@ The server refuses to start with missing/short secrets and prints which variable
 | Where | Command | Does |
 |---|---|---|
 | backend | `npm run dev` | API with hot reload (tsx) |
-| backend | `npm test` | 48 integration tests against real MongoDB (`comeback_os_test` db, dropped per test) |
+| backend | `npm test` | 60 integration tests against real MongoDB (`comeback_os_test` db, dropped per test) |
 | backend | `npm run typecheck` / `npm run build` / `npm start` | type check / compile to `dist/` / run compiled |
 | frontend | `npm run dev` | Vite dev server, proxies `/api` → :5000 |
 | frontend | `npm test` | 8 component + util tests (Vitest + Testing Library) |
@@ -73,6 +74,15 @@ Test DB override: `MONGO_URI_TEST=mongodb://host:27017/other_db npm test`.
 
 ## Password reset (no email yet)
 Email delivery isn't wired up in Phase 1. When you request a reset, the link is written to the API log; in non-production it is also shown on the Forgot password screen. SMTP/Resend integration is on the roadmap.
+
+## Admin panel
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (on Render: Environment tab) and restart. Log in with those at the normal login page — you land on `/admin`:
+overview (users, daily active users, database usage vs the 512 MB free tier), users (add a friend with a temporary password, reset password, log out everywhere, disable, delete with all data), sign-ups on/off, announcement banner, notification to everyone, and an audit log of admin actions.
+
+The admin sees **usage metadata only** (counts, last seen) — never journal text, meals, weights, expenses or photos. The admin account has no personal tracker; use your normal account for that.
+
+## Leave & holidays
+Daily routine → **Mark leave** (or "On leave today?" on the dashboard). Pick one day or a range, a type (leave, holiday, sick, WFH, travel) and which routine to follow — a **Leave day** routine is created for you, or choose "free day". Reminders marked *Stay quiet on leave* (wake-up and workout by default) don't fire on those days. Undo any time.
 
 ## Starter data
 Each module is seeded once per user with editable starter data: Mon–Fri / Saturday / Sunday routines, the home workout plan and 15 exercises, 22 common Indian foods and a weekly veg + egg meal plan, the 90-day learning roadmap, the ₹2,500 budget, grooming tasks, 7 goals and 10 reminders. Existing accounts get it automatically on their next request. Deleting starter data never re-seeds it.

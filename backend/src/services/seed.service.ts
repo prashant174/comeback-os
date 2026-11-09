@@ -67,6 +67,11 @@ const seeders: Record<string, Seeder> = {
       priority: 'high', milestones: g.milestones.map((title) => ({ title })),
     })));
   },
+  /** added later: existing users get it lazily on their next request */
+  leaveRoutine: async (user) => {
+    await RoutineModel.create({ user, name: 'Leave day', days: [], isActive: true, activities: S.LEAVE_ROUTINE, order: 9 });
+    await ReminderModel.updateMany({ user, type: { $in: ['wake', 'workout'] } }, { $set: { skipOnLeave: true } });
+  },
   reminders: async (user) => {
     await ReminderModel.insertMany(S.SEED_REMINDERS.map((r) => ({ ...r, days: 'days' in r ? [...r.days] : [0, 1, 2, 3, 4, 5, 6], user })));
   },

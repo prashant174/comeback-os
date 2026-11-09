@@ -11,10 +11,10 @@ afterAll(closeDB);
 const rtCookie = (setCookie: string[]) => setCookie.find((c) => c.startsWith('cbos_rt='))!.split(';')[0];
 
 describe('auth', () => {
-  it('registers first user as admin, seeds defaults, never leaks hash', async () => {
+  it('registers users as regular users (never admin), seeds defaults, never leaks hash', async () => {
     const { res } = await registerUser();
     expect(res.status).toBe(201);
-    expect(res.body.data.user.role).toBe('admin');
+    expect(res.body.data.user.role).toBe('user');
     expect(res.body.data.user.passwordHash).toBeUndefined();
     expect(res.body.data.accessToken).toBeTypeOf('string');
     expect(res.headers['set-cookie'][0]).toMatch(/cbos_rt=.*HttpOnly/i);

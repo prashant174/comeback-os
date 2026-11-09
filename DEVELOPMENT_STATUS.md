@@ -2,7 +2,7 @@
 
 _Last updated: 2026-11-09_
 
-Test results: backend **48/48** (real MongoDB), frontend **8/8**, both production builds clean, every page checked end-to-end in a browser (light, dark, mobile) with realistic data.
+Test results: backend **60/60** (real MongoDB), frontend **8/8**, both production builds clean, every page checked end-to-end in a browser (light, dark, mobile) with realistic data.
 
 ## Phase 1 — Foundation ✅
 Auth (rotation + reuse detection), settings, dashboard, habits, water, theme, responsive layout, Swagger, Docker/PM2/Nginx configs.
@@ -60,6 +60,19 @@ Auth (rotation + reuse detection), settings, dashboard, habits, water, theme, re
 | "Waking up the server" banner + longer timeouts for free-tier cold starts | ✅ |
 | Reminder catch-up window 30 min | ✅ |
 | render.yaml blueprint + docs/FREE_HOSTING.md (Atlas M0, Render free, keep-alive, phone install) | ✅ written, ⚠️ not deployed from the build environment |
+
+## Admin panel + leave days ✅
+| Feature | Status |
+|---|---|
+| Separate admin account from ADMIN_EMAIL / ADMIN_PASSWORD (created/rotated at startup, 12+ char rule) | ✅ |
+| Admin can't use trackers; users can't reach /admin (API + UI); admin role re-checked in DB per request | ✅ |
+| Overview: users, 7-day active/new, daily active users chart, DB usage vs 512 MB, server stats | ✅ |
+| Users: search/filter, last seen, activity, entries, photo storage — metadata only, no personal content | ✅ |
+| Add friend (temp password), reset password, log out everywhere, disable (revokes sessions), delete with all data + photos | ✅ |
+| Runtime sign-up toggle, announcement banner, broadcast notification, CSV export, audit log | ✅ |
+| Leave / holiday / sick / WFH / travel days, single day or range (≤60), chosen routine or free day | ✅ |
+| "Leave day" on-demand routine (seeded, also for existing users), reminders with "stay quiet on leave" | ✅ |
+| Leave banner + undo on Routine page, upcoming leaves list, "On leave today?" on dashboard | ✅ |
 
 ## Phase 5 — AI & hardening ⏳ next
 - [ ] Comeback AI (OpenAI / Gemini / Claude configurable, server-side keys, uses recorded data, graceful fallback, no medical advice)

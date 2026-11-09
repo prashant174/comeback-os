@@ -26,7 +26,7 @@ describe('seeding', () => {
   it('seeds every module once on registration', async () => {
     const { res } = await registerUser();
     const user = res.body.data.user._id;
-    expect(await RoutineModel.countDocuments({ user })).toBe(3);
+    expect(await RoutineModel.countDocuments({ user })).toBe(4); // Weekdays, Saturday, Sunday, Leave day
     expect(await ExerciseModel.countDocuments({ user })).toBe(15);
     expect(await WorkoutPlanModel.countDocuments({ user })).toBe(7);
     expect(await FoodModel.countDocuments({ user })).toBe(22);
@@ -42,10 +42,10 @@ describe('seeding', () => {
     const { res, token } = await registerUser();
     const user = res.body.data.user._id;
     await Promise.all([RoutineModel.deleteMany({ user }), ExerciseModel.deleteMany({ user }), WorkoutPlanModel.deleteMany({ user })]);
-    await UserPreferenceModel.updateOne({ user }, { $pull: { seededModules: { $in: ['routines', 'fitness'] } } });
+    await UserPreferenceModel.updateOne({ user }, { $pull: { seededModules: { $in: ['routines', 'fitness', 'leaveRoutine'] } } });
     _resetSeedCache();
     await Promise.all(Array.from({ length: 6 }, () => request(app).get('/api/dashboard').set(auth(token))));
-    expect(await RoutineModel.countDocuments({ user })).toBe(3);
+    expect(await RoutineModel.countDocuments({ user })).toBe(4);
     expect(await ExerciseModel.countDocuments({ user })).toBe(15);
   });
 

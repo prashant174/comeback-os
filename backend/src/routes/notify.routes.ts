@@ -16,6 +16,7 @@ export const remindersRouter = crudRouter({
     time: hhmm,
     days: z.array(z.number().int().min(0).max(6)).min(1).max(7).default([0, 1, 2, 3, 4, 5, 6]),
     enabled: z.boolean().default(true),
+    skipOnLeave: z.boolean().default(false),
   }),
   sort: { time: 1 },
 });

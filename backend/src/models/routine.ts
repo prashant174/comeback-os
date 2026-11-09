@@ -38,3 +38,23 @@ const routineDaySchema = new Schema(
 );
 routineDaySchema.index({ user: 1, date: 1 }, { unique: true });
 export const RoutineDayModel = model('RoutineDay', routineDaySchema);
+
+/**
+ * A date marked as leave / holiday / sick day etc. On that date the chosen
+ * routine replaces the normal weekday routine, and reminders flagged
+ * skipOnLeave stay quiet.
+ */
+export const DAY_TYPES = ['leave', 'holiday', 'sick', 'wfh', 'travel', 'other'] as const;
+const dayOverrideSchema = new Schema(
+  {
+    user: { type: Types.ObjectId, ref: 'User', required: true },
+    date: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
+    type: { type: String, enum: DAY_TYPES, default: 'leave' },
+    routine: { type: Types.ObjectId, ref: 'Routine', default: null }, // null = no routine that day
+    note: { type: String, default: '', maxlength: 200 },
+    groupId: { type: String, default: null }, // days created together (a multi-day leave)
+  },
+  { timestamps: true },
+);
+dayOverrideSchema.index({ user: 1, date: 1 }, { unique: true });
+export const DayOverrideModel = model('DayOverride', dayOverrideSchema);

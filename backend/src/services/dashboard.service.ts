@@ -68,7 +68,7 @@ export async function getDashboard(userId: string) {
     },
     water: { totalMl: water.totalMl, targetMl: t.waterMl, quickAdd: prefs.waterQuickAdd },
     schedule: profile.schedule,
-    routine: { name: routine.routine?.name ?? null, activities: routine.activities.map((a) => ({ _id: a._id, title: a.title, start: a.start, end: a.end, status: a.status, isNow: a.isNow })), stats: routine.stats },
+    routine: { override: routine.override, name: routine.routine?.name ?? null, activities: routine.activities.map((a) => ({ _id: a._id, title: a.title, start: a.start, end: a.end, status: a.status, isNow: a.isNow })), stats: routine.stats },
     workout: { title: plan?.title ?? null, focus: plan?.focus ?? 'rest', exercises: plan?.items.length ?? 0, isRest, done: workoutDone, minutes: workoutLogs.reduce((s, l) => s + l.durationMin, 0) },
     nutrition: { ...nutrition.totals, proteinMinG: t.proteinMinG, proteinMaxG: t.proteinMaxG, hasEstimates: nutrition.hasEstimates },
     study: { minutes: studyMin, targetMinutes: t.studyMinutesPerDay },

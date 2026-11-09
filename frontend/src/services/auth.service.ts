@@ -4,7 +4,7 @@ import type { User } from '@/types';
 type Session = { user: User; accessToken: string };
 
 export const authApi = {
-  config: () => unwrap<{ registrationOpen: boolean; firstRun: boolean }>(api.get('/auth/config')),
+  config: () => unwrap<{ registrationOpen: boolean; firstRun: boolean; announcement: { text: string; tone: 'info' | 'warning' } | null }>(api.get('/auth/config')),
   login: (body: { email: string; password: string }) => unwrap<Session>(api.post('/auth/login', body)),
   register: (body: { name: string; email: string; password: string }) => unwrap<Session>(api.post('/auth/register', body)),
   logout: () => api.post('/auth/logout'),

@@ -3,9 +3,11 @@ import { connectDB, disconnectDB } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { startReminderJob } from './jobs/reminders.job.js';
+import { ensureAdminAccount } from './services/auth.service.js';
 
 async function main() {
   await connectDB();
+  await ensureAdminAccount();
   startReminderJob();
   const server = createApp().listen(env.PORT, () =>
     logger.info(`Comeback OS API on http://localhost:${env.PORT}  (docs: /api/docs)`),

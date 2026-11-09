@@ -385,6 +385,7 @@ const REMINDER_FIELDS: FieldDef[] = [
   { name: 'time', label: 'Time', type: 'time', required: true },
   { name: 'days', label: 'Days', type: 'days' },
   { name: 'enabled', label: 'Enabled', type: 'checkbox' },
+  { name: 'skipOnLeave', label: 'Stay quiet on leave / holiday days', type: 'checkbox', full: true },
 ];
 export function RemindersSection() {
   const list = useList<Reminder>('/reminders', { limit: 100 });
@@ -415,7 +416,7 @@ export function RemindersSection() {
             <li key={r._id} className="flex items-center gap-3 py-2.5">
               <Switch checked={r.enabled} onCheckedChange={(v) => m.update.mutate({ id: r._id, body: { enabled: v } })} label={`Enable ${r.title}`} />
               <span className="w-20 text-sm font-medium num">{to12h(r.time)}</span>
-              <div className="flex-1 min-w-0"><p className={cn('text-sm truncate', !r.enabled && 'text-muted')}>{r.title}</p><p className="text-xs text-muted">{r.days.length === 7 ? 'Every day' : r.days.map((d) => DAY_SHORT[d]).join(', ')}</p></div>
+              <div className="flex-1 min-w-0"><p className={cn('text-sm truncate', !r.enabled && 'text-muted')}>{r.title}</p><p className="text-xs text-muted">{r.days.length === 7 ? 'Every day' : r.days.map((d) => DAY_SHORT[d]).join(', ')}{r.skipOnLeave ? ' · skipped on leave' : ''}</p></div>
               <Button variant="ghost" size="icon" aria-label={`Edit ${r.title}`} onClick={() => { setEdit(r); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
               <Button variant="ghost" size="icon" aria-label={`Delete ${r.title}`} onClick={() => m.remove.mutate(r._id)}><Trash2 className="h-4 w-4" /></Button>
             </li>
@@ -424,7 +425,7 @@ export function RemindersSection() {
         <Button variant="outline" size="sm" className="mt-4" onClick={() => { setEdit(null); setOpen(true); }}><BellRing className="h-4 w-4" />Add reminder</Button>
       </Card>
       <FormDialog open={open} onOpenChange={setOpen} title={edit ? 'Edit reminder' : 'New reminder'} fields={REMINDER_FIELDS} submitLabel={edit ? 'Save reminder' : 'Add reminder'}
-        initial={edit ?? { time: '09:00', days: [0, 1, 2, 3, 4, 5, 6], enabled: true, type: 'other' }}
+        initial={edit ?? { time: '09:00', days: [0, 1, 2, 3, 4, 5, 6], enabled: true, type: 'other', skipOnLeave: false }}
         onSubmit={(v) => edit ? m.update.mutateAsync({ id: edit._id, body: v }) : m.create.mutateAsync(v)} />
     </div>
   );

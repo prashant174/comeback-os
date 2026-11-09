@@ -21,6 +21,9 @@ const schema = z.object({
   APP_TIMEZONE: z.string().default('Asia/Kolkata'),
   /** number of proxies in front of the API (Render = 1, Render behind Cloudflare = 2) */
   TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(1),
+  /** Separate admin account, created/updated on startup. Leave empty to disable the admin panel. */
+  ADMIN_EMAIL: z.string().trim().toLowerCase().email().optional().or(z.literal('')).transform((v) => v || undefined),
+  ADMIN_PASSWORD: z.string().optional().transform((v) => v || undefined),
   /** built frontend to serve from the API (single-origin deploy). Empty = don't serve. */
   FRONTEND_DIST: z.string().default(''),
 });

@@ -6,6 +6,7 @@ import * as auth from '../services/auth.service.js';
 import { rotateRefreshToken, revokeRefreshToken, signAccessToken } from '../services/token.service.js';
 import { UserModel } from '../models/User.js';
 import { env, isProd } from '../config/env.js';
+import { getAppSettings, isRegistrationOpen } from '../services/appSettings.service.js';
 
 export const REFRESH_COOKIE = 'cbos_rt';
 
@@ -25,8 +26,13 @@ function sendSession(res: Response, data: { user: unknown; accessToken: string; 
 }
 
 export const config = asyncHandler(async (_req, res) => {
-  const count = await UserModel.estimatedDocumentCount();
-  ok(res, { registrationOpen: count === 0 || env.ALLOW_REGISTRATION, firstRun: count === 0 });
+  const count = await UserModel.countDocuments({ role: 'user' });
+  const settings = await getAppSettings();
+  ok(res, {
+    registrationOpen: count === 0 || (await isRegistrationOpen()),
+    firstRun: count === 0,
+    announcement: settings.announcement?.active && settings.announcement.text ? { text: settings.announcement.text, tone: settings.announcement.tone } : null,
+  });
 });
 
 export const register = asyncHandler(async (req, res) => {

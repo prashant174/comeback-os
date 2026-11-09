@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Check, Droplet, Dumbbell, Flame, Plus } from 'lucide-react';
+import { CalendarOff, Check, Droplet, Dumbbell, Flame, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { LeaveDialog } from '@/features/routine/LeaveDialog';
 import { Progress } from '@/components/ui/kit';
 import { to12h, fmtMinutes } from '@/lib/date';
 import { formatINR } from '@/lib/utils';
@@ -202,10 +204,13 @@ function GoalsWidget({ d }: { d: Dashboard }) {
 
 function RoutineWidget({ d }: { d: Dashboard }) {
   const r = d.routine;
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  if (r.override && !r.name) return <Section title="Today"><p className="text-sm"><CalendarOff className="inline h-4 w-4 text-amber mr-1.5 -mt-0.5" />Free day — no routine planned.</p><Link to="/routine" className="text-sm text-leaf hover:underline mt-2 inline-block">Manage leave</Link></Section>;
   if (!r.name) return <Section title="Today's plan"><ScheduleTimeline schedule={d.schedule} timezone={d.timezone} /></Section>;
   const STATUS: Record<string, string> = { done: 'bg-leaf border-leaf', missed: 'bg-danger/70 border-danger/70', skipped: 'bg-muted/40 border-muted/40' };
   return (
     <Section title={`Today · ${r.name}`} action={<Link to="/routine" className="text-sm text-muted hover:text-ink num">{r.stats.done}/{r.stats.total}</Link>}>
+      {r.override && <p className="mb-3 -mt-1 inline-flex items-center gap-1.5 h-6 px-2 rounded-md bg-amber/15 text-amber text-xs font-medium"><CalendarOff className="h-3.5 w-3.5" />On {r.override.type === 'leave' ? 'leave' : r.override.type} today</p>}
       <ol className="space-y-2.5">
         {r.activities.map((a) => (
           <li key={a._id} className="flex items-center gap-3">
@@ -215,6 +220,8 @@ function RoutineWidget({ d }: { d: Dashboard }) {
           </li>
         ))}
       </ol>
+      {!r.override && <button onClick={() => setLeaveOpen(true)} className="mt-4 text-xs text-muted hover:text-ink inline-flex items-center gap-1.5"><CalendarOff className="h-3.5 w-3.5" />On leave today?</button>}
+      <LeaveDialog open={leaveOpen} onOpenChange={setLeaveOpen} date={d.today} />
     </Section>
   );
 }

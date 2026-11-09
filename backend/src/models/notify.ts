@@ -8,6 +8,8 @@ const reminderSchema = new Schema(
     time: { type: String, match: /^([01]\d|2[0-3]):[0-5]\d$/, required: true },
     days: { type: [Number], default: [0, 1, 2, 3, 4, 5, 6] },
     enabled: { type: Boolean, default: true },
+    /** stay quiet on days marked as leave / holiday / sick */
+    skipOnLeave: { type: Boolean, default: false },
     lastFiredDate: { type: String, default: null },
   },
   { timestamps: true },
