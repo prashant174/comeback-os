@@ -8,6 +8,8 @@ import { WorkoutLogModel, BodyMeasurementModel } from '../models/fitness.js';
 import { ExpenseModel } from '../models/finance.js';
 import { UserProfileModel } from '../models/UserProfile.js';
 import { round1 } from '../utils/timeCore.js';
+import { hoursByProject } from './work.service.js';
+import { WorkLogModel } from '../models/work.js';
 
 const byDate = <T extends { _id: string }>(rows: T[]) => new Map(rows.map((r) => [r._id, r]));
 const avg = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0);
@@ -29,6 +31,11 @@ export async function analytics(userId: string, days: string[]) {
     GoalModel.find({ user: uid }).select('title status progress deadline horizon category').lean(),
     UserProfileModel.findOne({ user: uid }).select('targets').lean(),
   ]);
+  const [workByProject, workDays] = await Promise.all([
+    hoursByProject(userId, days[0], days[days.length - 1]),
+    WorkLogModel.aggregate<{ _id: string; minutes: number }>([{ $match: { user: uid, date: range } }, { $group: { _id: '$date', minutes: { $sum: '$minutes' } } }]),
+  ]);
+  const workMap = new Map(workDays.map((w) => [w._id, w.minutes]));
   const t = profile?.targets;
   const sleepMap = new Map(sleep.map((s) => [s.date, s]));
   const studyMap = byDate(study), woMap = byDate(workouts), exMap = byDate(expensesDay), moodMap = byDate(mood);
@@ -43,6 +50,7 @@ export async function analytics(userId: string, days: string[]) {
     studyMin: studyMap.get(date)?.minutes ?? 0,
     workouts: woMap.get(date)?.count ?? 0,
     workoutMin: woMap.get(date)?.minutes ?? 0,
+    workMin: workMap.get(date) ?? 0,
     spent: Math.round((exMap.get(date)?.total ?? 0) * 100) / 100,
     mood: moodMap.has(date) ? round1(moodMap.get(date)!.mood) : null,
   }));
@@ -68,6 +76,7 @@ export async function analytics(userId: string, days: string[]) {
     weightChangeKg: weight.length >= 2 ? round1(weight[weight.length - 1].weightKg! - weight[0].weightKg!) : null,
     goalsActive: goals.filter((g) => g.status === 'active').length,
     goalsCompleted: goals.filter((g) => g.status === 'completed').length,
+    workHours: round1(workByProject.reduce((s, w) => s + w.minutes, 0) / 60),
     goalsAvgProgress: Math.round(avg(goals.filter((g) => g.status !== 'dropped').map((g) => g.progress))),
   };
   return {
@@ -75,5 +84,6 @@ export async function analytics(userId: string, days: string[]) {
     expensesByCategory: expensesCat.map((c) => ({ category: c._id, total: Math.round(c.total * 100) / 100 })),
     weight: weight.map((w) => ({ date: w.date, weightKg: w.weightKg, waistCm: w.waistCm })),
     goals: goals.map((g) => ({ _id: g._id, title: g.title, status: g.status, progress: g.progress, deadline: g.deadline })),
+    workByProject,
   };
 }

@@ -23,6 +23,7 @@ const SleepPage = lazy(() => import('@/features/sleep/SleepPage'));
 const GoalsPage = lazy(() => import('@/features/goals/GoalsPage'));
 const JournalPage = lazy(() => import('@/features/journal/JournalPage'));
 const AnalyticsPage = lazy(() => import('@/features/analytics/AnalyticsPage'));
+const WorkPage = lazy(() => import('@/features/work/WorkPage'));
 const AdminPage = lazy(() => import('@/features/admin/AdminPage'));
 import { AdminLayout } from '@/components/layout/AdminLayout';
 
@@ -75,6 +76,7 @@ export default function App() {
             <Route path="goals" element={<GoalsPage />} />
             <Route path="journal" element={<JournalPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="work" element={<WorkPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

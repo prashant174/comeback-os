@@ -1,40 +1,34 @@
-Comeback OS — admin panel + leave days. Extract over your comeback-os folder (overwrite), then git push.
+Comeback OS — Work module. Extract over your comeback-os folder (overwrite). No new npm packages.
 
   modified  comeback-os/DEVELOPMENT_STATUS.md
   modified  comeback-os/README.md
-  modified  comeback-os/backend/.env.example
-  modified  comeback-os/backend/src/config/env.ts
-  modified  comeback-os/backend/src/config/seeds.ts
-  modified  comeback-os/backend/src/controllers/auth.controller.ts
+  modified  comeback-os/backend/src/config/defaults.ts
   modified  comeback-os/backend/src/jobs/reminders.job.ts
-  modified  comeback-os/backend/src/middleware/auth.ts
-  new       comeback-os/backend/src/models/admin.ts
-  modified  comeback-os/backend/src/models/notify.ts
-  modified  comeback-os/backend/src/models/routine.ts
-  new       comeback-os/backend/src/routes/admin.routes.ts
+  new       comeback-os/backend/src/jobs/work.job.ts
+  new       comeback-os/backend/src/models/work.ts
   modified  comeback-os/backend/src/routes/index.ts
-  modified  comeback-os/backend/src/routes/notify.routes.ts
-  modified  comeback-os/backend/src/routes/routine.routes.ts
-  modified  comeback-os/backend/src/server.ts
-  new       comeback-os/backend/src/services/admin.service.ts
-  new       comeback-os/backend/src/services/appSettings.service.ts
-  modified  comeback-os/backend/src/services/auth.service.ts
+  new       comeback-os/backend/src/routes/work.routes.ts
+  modified  comeback-os/backend/src/services/admin.service.ts
+  modified  comeback-os/backend/src/services/analytics.service.ts
   modified  comeback-os/backend/src/services/dashboard.service.ts
-  modified  comeback-os/backend/src/services/routine.service.ts
-  modified  comeback-os/backend/src/services/seed.service.ts
-  new       comeback-os/backend/tests/admin-leave.test.ts
-  modified  comeback-os/backend/tests/auth.test.ts
+  modified  comeback-os/backend/src/services/export.service.ts
+  new       comeback-os/backend/src/services/work.service.ts
   modified  comeback-os/backend/tests/phase234.test.ts
-  modified  comeback-os/docs/FREE_HOSTING.md
+  new       comeback-os/backend/tests/work.test.ts
   modified  comeback-os/frontend/src/App.tsx
-  new       comeback-os/frontend/src/components/layout/AdminLayout.tsx
-  modified  comeback-os/frontend/src/components/layout/AppLayout.tsx
-  new       comeback-os/frontend/src/features/admin/AdminPage.tsx
-  modified  comeback-os/frontend/src/features/auth/LoginPage.tsx
+  modified  comeback-os/frontend/src/components/layout/nav.ts
+  modified  comeback-os/frontend/src/components/ui/form-dialog.tsx
+  modified  comeback-os/frontend/src/features/analytics/AnalyticsPage.tsx
   modified  comeback-os/frontend/src/features/dashboard/DashboardPage.tsx
-  new       comeback-os/frontend/src/features/routine/LeaveDialog.tsx
-  modified  comeback-os/frontend/src/features/routine/RoutinePage.tsx
   modified  comeback-os/frontend/src/features/settings/sections.tsx
-  modified  comeback-os/frontend/src/services/auth.service.ts
+  new       comeback-os/frontend/src/features/work/Board.tsx
+  new       comeback-os/frontend/src/features/work/Changes.tsx
+  new       comeback-os/frontend/src/features/work/Meetings.tsx
+  new       comeback-os/frontend/src/features/work/People.tsx
+  new       comeback-os/frontend/src/features/work/Projects.tsx
+  new       comeback-os/frontend/src/features/work/Report.tsx
+  new       comeback-os/frontend/src/features/work/Requirements.tsx
+  new       comeback-os/frontend/src/features/work/WorkLog.tsx
+  new       comeback-os/frontend/src/features/work/WorkPage.tsx
+  new       comeback-os/frontend/src/features/work/shared.tsx
   modified  comeback-os/frontend/src/types/index.ts
-  modified  comeback-os/render.yaml

@@ -17,6 +17,8 @@ import analyticsRoutes from './analytics.routes.js';
 import { sleepRouter, goalsRouter, journalRouter } from './wellbeing.routes.js';
 import { remindersRouter, notificationsRouter } from './notify.routes.js';
 import { summary } from '../controllers/dashboard.controller.js';
+import feedbackRoutes from './feedback.routes.js';
+import workRoutes from './work.routes.js';
 
 const api = Router();
 
@@ -27,7 +29,7 @@ api.use('/auth', authRoutes);
 
 // Only known module prefixes require login (so unknown /api paths still 404).
 // Each also lazily seeds starter data for modules the user hasn't used yet.
-const PROTECTED = ['/settings', '/habits', '/water', '/dashboard', '/routines', '/fitness', '/nutrition', '/learning',
+const PROTECTED = ['/work', '/feedback', '/settings', '/habits', '/water', '/dashboard', '/routines', '/fitness', '/nutrition', '/learning',
   '/finance', '/grooming', '/sleep', '/goals', '/journal', '/reminders', '/notifications', '/analytics'];
 api.use(PROTECTED, requireAuth, requireMember, ensureSeeded);
 api.use('/admin', requireAuth, requireAdmin, adminRoutes);
@@ -48,6 +50,8 @@ authed.use('/journal', journalRouter);
 authed.use('/reminders', remindersRouter);
 authed.use('/notifications', notificationsRouter);
 authed.use('/analytics', analyticsRoutes);
+authed.use('/feedback', feedbackRoutes);
+authed.use('/work', workRoutes);
 api.use(authed);
 
 export default api;

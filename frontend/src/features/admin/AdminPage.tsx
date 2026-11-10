@@ -57,12 +57,16 @@ function OverviewTab() {
     <div className="space-y-5">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Users" value={d.users.total} sub={`${d.users.disabled} disabled`} />
-        <Stat label="Active (7 days)" value={d.users.activeLast7Days} sub="logged anything" />
+        <Stat label="Active (7 days)" value={d.users.activeLast7Days} sub="logged or ticked anything" />
         <Stat label="New (7 days)" value={d.users.newLast7Days} />
         <Stat label="Server uptime" value={uptime(d.server.uptimeSec)} sub={`${d.server.node} · ${d.server.rssMb} MB RAM`} />
       </div>
       <div className="grid lg:grid-cols-[1.4fr_1fr] gap-5">
-        <Panel title="Daily active users · 30 days">
+        <Panel title="Activity · 30 days" action={
+          <div className="flex gap-4 text-xs text-muted">
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-leaf" />Active users</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-water" />Sign-ups</span>
+          </div>}>
           <div className="h-56 -ml-2"><ResponsiveContainer><BarChart data={a.data ?? []}><CartesianGrid vertical={false} stroke="hsl(var(--line))" />
             <XAxis dataKey="date" tickFormatter={(x) => prettyDate(x, { day: 'numeric', month: 'short' })} tick={axisTick} tickLine={false} axisLine={false} minTickGap={20} />
             <YAxis allowDecimals={false} tick={axisTick} tickLine={false} axisLine={false} width={28} />
@@ -248,14 +252,59 @@ function AuditTab() {
   );
 }
 
+
+type Feedback = { _id: string; type: 'bug' | 'idea' | 'other'; message: string; page: string; userAgent: string; status: 'open' | 'resolved'; adminNote: string; createdAt: string; user: { name: string; email: string } | null };
+
+function FeedbackTab() {
+  const qc = useQueryClient();
+  const [status, setStatus] = useState<'open' | 'resolved' | 'all'>('open');
+  const q = useQuery({ queryKey: ['admin-feedback', status], queryFn: () => api.get('/admin/feedback', { params: { status } }).then((r) => ({ items: r.data.data as Feedback[], open: r.data.meta.open as number })) });
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const upd = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, string> }) => api.patch(`/admin/feedback/${id}`, body),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-feedback'] }); toast.success('Feedback updated'); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const device = (ua: string) => (/iphone|ipad/i.test(ua) ? 'iPhone' : /android/i.test(ua) ? 'Android' : /windows/i.test(ua) ? 'Windows' : /mac/i.test(ua) ? 'Mac' : 'Other');
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="w-40" aria-label="Status">
+          <option value="open">Open</option><option value="resolved">Resolved</option><option value="all">All</option>
+        </Select>
+        <span className="text-sm text-muted">{q.data?.open ?? 0} open</span>
+      </div>
+      {q.isLoading ? <Skeleton className="h-40" /> : !q.data?.items.length ? <p className="text-sm text-muted">No feedback here. Testers send it from their profile menu → Send feedback.</p> : q.data.items.map((f) => (
+        <section key={f._id} className="panel p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip tone={f.type === 'bug' ? 'danger' : f.type === 'idea' ? 'leaf' : 'neutral'}>{f.type}</Chip>
+            {f.status === 'resolved' && <Chip tone="leaf">resolved</Chip>}
+            <span className="text-sm font-medium">{f.user?.name ?? 'Deleted user'}</span>
+            <span className="text-xs text-muted">{f.user?.email} · {prettyDate(f.createdAt.slice(0, 10), { day: 'numeric', month: 'short' })} · {f.page || '—'} · {device(f.userAgent)}</span>
+          </div>
+          <p className="text-sm mt-3 whitespace-pre-wrap">{f.message}</p>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Input className="flex-1 min-w-[200px] h-9" placeholder="Note back to the tester (they can see it)" aria-label="Admin note"
+              value={notes[f._id] ?? f.adminNote} onChange={(e) => setNotes({ ...notes, [f._id]: e.target.value })} maxLength={500} />
+            {f.status === 'open'
+              ? <Button size="sm" onClick={() => upd.mutate({ id: f._id, body: { status: 'resolved', adminNote: notes[f._id] ?? f.adminNote } })}><CheckCircle2 className="h-4 w-4" />Resolve</Button>
+              : <Button size="sm" variant="outline" onClick={() => upd.mutate({ id: f._id, body: { status: 'open' } })}>Reopen</Button>}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [tab, setTab] = useState('overview');
   return (
     <div>
       <PageHeader title="Admin" subtitle="Testers, usage and app settings." />
-      <PageTabs value={tab} onChange={setTab} tabs={[{ v: 'overview', label: 'Overview' }, { v: 'users', label: 'Users' }, { v: 'settings', label: 'Settings & broadcast' }, { v: 'audit', label: 'Audit log' }]}>
+      <PageTabs value={tab} onChange={setTab} tabs={[{ v: 'overview', label: 'Overview' }, { v: 'users', label: 'Users' }, { v: 'feedback', label: 'Feedback' }, { v: 'settings', label: 'Settings & broadcast' }, { v: 'audit', label: 'Audit log' }]}>
         <TabPanel value="overview"><OverviewTab /></TabPanel>
         <TabPanel value="users"><UsersTab /></TabPanel>
+        <TabPanel value="feedback"><FeedbackTab /></TabPanel>
         <TabPanel value="settings"><SettingsTab /></TabPanel>
         <TabPanel value="audit"><AuditTab /></TabPanel>
       </PageTabs>

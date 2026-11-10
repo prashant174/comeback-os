@@ -5,8 +5,9 @@ import { StudySessionModel } from '../models/learning.js';
 import { WorkoutLogModel, BodyMeasurementModel } from '../models/fitness.js';
 import { MealEntryModel } from '../models/nutrition.js';
 import { HabitLogModel } from '../models/HabitLog.js';
+import { WorkLogModel, WorkTaskModel } from '../models/work.js';
 
-export const EXPORT_MODULES = ['expenses', 'water', 'sleep', 'study', 'workouts', 'meals', 'habits', 'measurements', 'journal'] as const;
+export const EXPORT_MODULES = ['expenses', 'water', 'sleep', 'study', 'workouts', 'meals', 'habits', 'measurements', 'journal', 'worklog', 'worktasks'] as const;
 export type ExportModule = (typeof EXPORT_MODULES)[number];
 
 /** RFC 4180 CSV with formula-injection protection (cells starting with = + - @ are prefixed). */
@@ -39,6 +40,14 @@ export async function exportRows(userId: string, module: ExportModule, from: str
       return { cols: ['date', 'habit'], rows: rows.map((r) => ({ date: r.date, habit: (r.habit as unknown as { name?: string })?.name ?? '' })) };
     }
     case 'measurements': return { cols: ['date', 'weightKg', 'waistCm', 'chestCm', 'armCm', 'thighCm', 'notes'], rows: await BodyMeasurementModel.find(q).sort({ date: 1 }).lean() };
+    case 'worklog': {
+      const rows = await WorkLogModel.find(q).sort({ date: 1 }).populate('project', 'name').lean();
+      return { cols: ['date', 'project', 'description', 'minutes'], rows: rows.map((r) => ({ ...r, project: (r.project as unknown as { name?: string })?.name ?? '' })) };
+    }
+    case 'worktasks': {
+      const rows = await WorkTaskModel.find({ user: userId, $or: [{ dueDate: { $gte: from, $lte: to } }, { completedDate: { $gte: from, $lte: to } }] }).sort({ dueDate: 1 }).populate('project', 'name').lean();
+      return { cols: ['title', 'project', 'status', 'priority', 'dueDate', 'completedDate', 'estimateHours', 'blockedReason'], rows: rows.map((r) => ({ ...r, project: (r.project as unknown as { name?: string })?.name ?? '' })) };
+    }
     case 'journal': return { cols: ['date', 'mood', 'achievements', 'challenges', 'reflection', 'ideas', 'tags'], rows: await JournalModel.find(q).sort({ date: 1 }).lean() };
   }
 }

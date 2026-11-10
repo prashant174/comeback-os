@@ -32,3 +32,19 @@ adminAuditSchema.index({ createdAt: -1 });
 // keep a year of audit history
 adminAuditSchema.index({ createdAt: 1 }, { expireAfterSeconds: 365 * 86400 });
 export const AdminAuditModel = model('AdminAudit', adminAuditSchema);
+
+/** Feedback / bug reports from testers, reviewed in the admin panel. */
+const feedbackSchema = new Schema(
+  {
+    user: { type: Types.ObjectId, ref: 'User', required: true, index: true },
+    type: { type: String, enum: ['bug', 'idea', 'other'], default: 'bug' },
+    message: { type: String, required: true, maxlength: 2000 },
+    page: { type: String, default: '', maxlength: 200 },
+    userAgent: { type: String, default: '', maxlength: 300 },
+    status: { type: String, enum: ['open', 'resolved'], default: 'open' },
+    adminNote: { type: String, default: '', maxlength: 500 },
+  },
+  { timestamps: true },
+);
+feedbackSchema.index({ status: 1, createdAt: -1 });
+export const FeedbackModel = model('Feedback', feedbackSchema);

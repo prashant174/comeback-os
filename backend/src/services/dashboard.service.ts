@@ -10,6 +10,7 @@ import { SleepRecordModel, GoalModel } from '../models/wellbeing.js';
 import { ExpenseModel } from '../models/finance.js';
 import { dayKey, lastNDays, weekdayOf } from '../utils/date.js';
 import { round1 } from '../utils/timeCore.js';
+import { workSummary } from './work.service.js';
 
 /**
  * Dashboard summary. The daily score averages only components that apply
@@ -39,6 +40,7 @@ export async function getDashboard(userId: string) {
     financeSummary(userId, today.slice(0, 7)),
     ExpenseModel.find({ user: userId, date: today }).select('amount').lean(),
   ]);
+  const work = await workSummary(userId, today); // shown on the dashboard; deliberately not part of the score
 
   const scheduled = habits.filter((h) => h.scheduledToday);
   const doneCount = scheduled.filter((h) => h.completedToday).length;
@@ -74,6 +76,7 @@ export async function getDashboard(userId: string) {
     study: { minutes: studyMin, targetMinutes: t.studyMinutesPerDay },
     sleep: { hours: sleepHours, quality: sleep?.quality ?? null, bedtime: sleep?.bedtime ?? null, wakeTime: sleep?.wakeTime ?? null, targetHours: t.sleepHours },
     finance: { spentToday: Math.round(spentToday.reduce((s, e) => s + e.amount, 0) * 100) / 100, monthSpent: finance.spent, monthLimit: finance.totalLimit, pct: finance.pct },
+    work,
     goals: { active: goals.length, top: goals.slice(0, 3).map((g) => ({ _id: g._id, title: g.title, progress: g.progress, deadline: g.deadline })) },
     targets: t,
     personal: profile.personal,

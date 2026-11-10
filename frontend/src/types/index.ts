@@ -46,6 +46,7 @@ export type Dashboard = {
   sleep: { hours: number | null; quality: number | null; bedtime: string | null; wakeTime: string | null; targetHours: number };
   finance: { spentToday: number; monthSpent: number; monthLimit: number; pct: number };
   goals: { active: number; top: { _id: string; title: string; progress: number; deadline: string }[] };
+  work: WorkSummary;
 };
 
 /* ---------- Phase 2 ---------- */
@@ -93,3 +94,33 @@ export type Goal = { _id: string; title: string; description: string; category: 
 export type JournalEntry = { _id: string; date: string; mood: number; achievements: string; challenges: string; reflection: string; ideas: string; tags: string[] };
 export type Reminder = { _id: string; title: string; type: string; time: string; days: number[]; enabled: boolean; skipOnLeave: boolean };
 export type AppNotification = { _id: string; title: string; body: string; kind: string; link: string | null; readAt: string | null; createdAt: string };
+
+/* ---------- Work ---------- */
+export type WorkPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type Stakeholder = { _id: string; name: string; department: string; role: string; note: string };
+export type WorkProject = {
+  _id: string; name: string; description: string; department: string; stakeholders: string[];
+  status: 'planning' | 'in_progress' | 'on_hold' | 'live' | 'done'; priority: WorkPriority;
+  startDate: string | null; targetDate: string | null; progress: number; links: { label: string; url: string }[]; techStack: string[]; archived: boolean;
+};
+export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done';
+export type WorkTask = {
+  _id: string; title: string; description: string; project: string | { _id: string; name: string } | null; status: TaskStatus; blockedReason: string;
+  priority: WorkPriority; dueDate: string | null; checklist: { _id?: string; title: string; done: boolean }[]; estimateHours: number | null;
+  assignee: string; order: number; completedDate: string | null; source: { kind: 'manual' | 'requirement' | 'meeting'; id: string | null };
+};
+export type Requirement = {
+  _id: string; title: string; details: string; project: string | null; stakeholder: string | null; requestedBy: string; department: string;
+  date: string; priority: WorkPriority; status: 'new' | 'accepted' | 'in_progress' | 'delivered' | 'rejected'; task: string | null;
+};
+export type Meeting = {
+  _id: string; title: string; date: string; project: string | null; attendees: string[]; notes: string; decisions: string;
+  actionItems: { _id?: string; text: string; assignee: string; dueDate: string | null; task: string | null }[];
+};
+export type WorkLogEntry = { _id: string; date: string; project: string | { _id: string; name: string } | null; task: string | null; description: string; minutes: number };
+export type ChangeEntry = { _id: string; project: string; date: string; version: string; type: 'feature' | 'fix' | 'config' | 'data'; environment: 'dev' | 'uat' | 'live'; summary: string };
+export type WorkSummary = {
+  dueToday: (Pick<WorkTask, '_id' | 'title' | 'priority' | 'status' | 'dueDate'> & { project: { name: string } | null })[];
+  overdue: (Pick<WorkTask, '_id' | 'title' | 'priority' | 'status' | 'dueDate'> & { project: { name: string } | null })[];
+  dueTodayCount: number; overdueCount: number; blocked: number; minutesToday: number;
+};

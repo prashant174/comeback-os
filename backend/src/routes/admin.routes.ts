@@ -1,7 +1,8 @@
 import { Router, type Request } from 'express';
 import { z } from 'zod';
 import { UserModel } from '../models/User.js';
-import { AdminAuditModel } from '../models/admin.js';
+import { AdminAuditModel, FeedbackModel } from '../models/admin.js';
+import { invalidateUserStatus } from '../middleware/auth.js';
 import { AppSettingModel } from '../models/admin.js';
 import { NotificationModel } from '../models/notify.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -70,6 +71,7 @@ r.patch('/users/:id', validate({ params: idParam, body: z.object({ isActive: z.b
   u.set(req.body);
   await u.save();
   if (req.body.isActive === false) await revokeAllForUser(String(u._id)); // kick them out now
+  invalidateUserStatus(String(u._id));
   await audit(me(req), req.body.isActive === false ? 'user.disable' : req.body.isActive === true ? 'user.enable' : 'user.update', u, { before, after: req.body });
   ok(res, u);
 }));
@@ -93,6 +95,7 @@ r.delete('/users/:id', validate({ params: idParam, body: z.object({ confirmEmail
   const u = await targetUser(req.params.id);
   if (req.body.confirmEmail !== u.email) throw ApiError.badRequest('Type the user’s email exactly to confirm deletion');
   const result = await deleteUserCompletely(String(u._id));
+  invalidateUserStatus(String(u._id));
   await audit(me(req), 'user.delete', { email: u.email }, result);
   ok(res, { deleted: true, ...result });
 }));
@@ -120,6 +123,22 @@ r.post('/broadcast', validate({ body: z.object({ title: z.string().trim().min(1)
 r.get('/audit', validate({ query: z.object({ limit: z.coerce.number().int().min(1).max(200).default(50) }) }), asyncHandler(async (req, res) => {
   const rows = await AdminAuditModel.find().sort({ createdAt: -1 }).limit(Number((req.query as { limit?: number }).limit ?? 50)).populate('admin', 'email').lean();
   ok(res, rows);
+}));
+
+/* ---- tester feedback ---- */
+r.get('/feedback', validate({ query: z.object({ status: z.enum(['open', 'resolved', 'all']).default('open') }) }), asyncHandler(async (req, res) => {
+  const status = (req.query as { status: string }).status;
+  const [items, open] = await Promise.all([
+    FeedbackModel.find(status === 'all' ? {} : { status }).sort({ createdAt: -1 }).limit(200).populate('user', 'name email').lean(),
+    FeedbackModel.countDocuments({ status: 'open' }),
+  ]);
+  ok(res, items, { open });
+}));
+r.patch('/feedback/:id', validate({ params: idParam, body: z.object({ status: z.enum(['open', 'resolved']).optional(), adminNote: z.string().max(500).optional() }) }), asyncHandler(async (req, res) => {
+  const f = await FeedbackModel.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate('user', 'name email');
+  if (!f) throw ApiError.notFound('Feedback not found');
+  await audit(me(req), `feedback.${req.body.status ?? 'note'}`, null, { feedback: req.params.id });
+  ok(res, f);
 }));
 
 export default r;

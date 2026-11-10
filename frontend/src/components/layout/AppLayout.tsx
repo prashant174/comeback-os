@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import * as DM from '@radix-ui/react-dropdown-menu';
-import { ChevronsLeft, ChevronsRight, LayoutGrid, LogOut, Megaphone, Moon, Sun, Monitor, UserRound, X } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, LayoutGrid, LogOut, Megaphone, Moon, Sun, Monitor, UserRound, X, MessageSquarePlus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { authApi } from '@/services/auth.service';
 import { NotificationBell } from './NotificationBell';
+import { FeedbackDialog } from './FeedbackDialog';
 import { AuthedImage } from '@/components/AuthedImage';
 import { Dialog } from '@/components/ui/dialog';
 import { NAV } from './nav';
@@ -32,7 +33,9 @@ function ThemeToggle() {
 
 function ProfileMenu() {
   const { user, logout } = useAuth();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   return (
+    <>
     <DM.Root>
       <DM.Trigger asChild>
         <button className="h-9 w-9 rounded-full bg-leaf-soft text-leaf-ink text-sm font-semibold grid place-items-center overflow-hidden" aria-label="Account menu">
@@ -51,12 +54,17 @@ function ProfileMenu() {
               <UserRound className="h-4 w-4" /> Account settings
             </NavLink>
           </DM.Item>
+          <DM.Item onSelect={() => setFeedbackOpen(true)} className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg outline-none data-[highlighted]:bg-sunken cursor-pointer">
+            <MessageSquarePlus className="h-4 w-4" /> Send feedback
+          </DM.Item>
           <DM.Item onSelect={() => logout()} className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg outline-none data-[highlighted]:bg-sunken text-danger cursor-pointer">
             <LogOut className="h-4 w-4" /> Log out
           </DM.Item>
         </DM.Content>
       </DM.Portal>
     </DM.Root>
+    <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+    </>
   );
 }
 

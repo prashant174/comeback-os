@@ -4,6 +4,7 @@ import { DayOverrideModel } from '../models/routine.js';
 import { dayKey } from '../utils/date.js';
 import { nowIn } from '../utils/time.js';
 import { logger } from '../utils/logger.js';
+import { runWorkDueTick } from './work.job.js';
 
 const LINKS: Record<string, string> = { workout: '/fitness', meal: '/nutrition', water: '/water', study: '/learning', sleep: '/sleep', review: '/analytics', budget: '/finance', wake: '/routine' };
 
@@ -44,7 +45,10 @@ export async function runRemindersTick(now = new Date()) {
 }
 
 export function startReminderJob() {
-  const tick = () => runRemindersTick().catch((e) => logger.error('reminder tick failed', { e: e?.message }));
+  const tick = () => {
+    runRemindersTick().catch((e) => logger.error('reminder tick failed', { e: e?.message }));
+    runWorkDueTick().catch((e) => logger.error('work reminder tick failed', { e: e?.message }));
+  };
   const t = setInterval(tick, 60_000);
   t.unref();
   tick();

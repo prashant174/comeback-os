@@ -249,7 +249,7 @@ export function CareerSection({ profile }: { profile: Profile }) {
 }
 
 /* ---------------- Dashboard widgets + water quick add ---------------- */
-const WIDGET_LABELS: Record<string, string> = { score: "Today's score", habits: "Today's habits", water: 'Water', schedule: "Today's routine", weekly: 'Last 7 days chart', profile: 'Targets', workout: 'Workout', nutrition: 'Protein & nutrition', study: 'Study', sleep: 'Sleep', finance: 'Spending', goals: 'Goals' };
+const WIDGET_LABELS: Record<string, string> = { score: "Today's score", habits: "Today's habits", water: 'Water', schedule: "Today's routine", weekly: 'Last 7 days chart', profile: 'Targets', workout: 'Workout', nutrition: 'Protein & nutrition', study: 'Study', sleep: 'Sleep', finance: 'Spending', goals: 'Goals', work: 'Work tasks' };
 
 export function DashboardSection({ prefs }: { prefs: Preferences }) {
   const qc = useQueryClient();

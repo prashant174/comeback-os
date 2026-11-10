@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, CalendarClock, Dumbbell, Salad, Droplet, GraduationCap, Wallet, Sparkles,
-  Moon, CircleCheckBig, Target, NotebookPen, ChartLine, Settings, type LucideIcon,
+  Moon, CircleCheckBig, Target, NotebookPen, ChartLine, Settings, Briefcase, type LucideIcon,
 } from 'lucide-react';
 
 export type NavItem = { to: string; label: string; icon: LucideIcon; mobile?: boolean };
@@ -8,6 +8,7 @@ export type NavItem = { to: string; label: string; icon: LucideIcon; mobile?: bo
 export const NAV: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, mobile: true },
   { to: '/routine', label: 'Daily routine', icon: CalendarClock, mobile: true },
+  { to: '/work', label: 'Work', icon: Briefcase },
   { to: '/fitness', label: 'Fitness', icon: Dumbbell },
   { to: '/nutrition', label: 'Nutrition', icon: Salad },
   { to: '/water', label: 'Water', icon: Droplet },

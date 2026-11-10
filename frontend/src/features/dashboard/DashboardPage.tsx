@@ -226,6 +226,32 @@ function RoutineWidget({ d }: { d: Dashboard }) {
   );
 }
 
+function WorkWidget({ d }: { d: Dashboard }) {
+  const w = d.work;
+  const list = [...w.overdue.map((t) => ({ ...t, late: true })), ...w.dueToday.map((t) => ({ ...t, late: false }))].slice(0, 5);
+  return (
+    <Section title="Work today" action={<Link to="/work" className="text-sm text-muted hover:text-ink">Board</Link>}>
+      <div className="flex gap-5 mb-4 text-sm">
+        <div><p className="font-display text-2xl font-semibold num">{w.dueTodayCount}</p><p className="text-xs text-muted">due today</p></div>
+        <div><p className={cn('font-display text-2xl font-semibold num', w.overdueCount > 0 && 'text-danger')}>{w.overdueCount}</p><p className="text-xs text-muted">overdue</p></div>
+        <div><p className={cn('font-display text-2xl font-semibold num', w.blocked > 0 && 'text-amber')}>{w.blocked}</p><p className="text-xs text-muted">blocked</p></div>
+        <div className="ml-auto text-right"><p className="font-display text-2xl font-semibold num">{fmtMinutes(w.minutesToday)}</p><p className="text-xs text-muted">logged</p></div>
+      </div>
+      {!list.length ? <p className="text-sm text-muted">Nothing due. <Link to="/work" className="text-leaf hover:underline">Plan your tasks</Link></p> : (
+        <ul className="space-y-2">
+          {list.map((t) => (
+            <li key={t._id} className="flex items-center gap-2 text-sm">
+              <span className={cn('h-2 w-2 rounded-full shrink-0', t.late ? 'bg-danger' : 'bg-amber')} />
+              <span className="flex-1 truncate">{t.title}{t.project ? <span className="text-muted"> · {t.project.name}</span> : null}</span>
+              {t.late && <span className="text-xs text-danger">overdue</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const q = useDashboard();
@@ -256,6 +282,7 @@ export default function DashboardPage() {
     sleep: <SleepWidget d={d} />,
     finance: <FinanceWidget d={d} />,
     goals: <GoalsWidget d={d} />,
+    work: <WorkWidget d={d} />,
     weekly: (
       <Section title="Last 7 days" action={
         <div className="flex gap-4 text-xs text-muted">

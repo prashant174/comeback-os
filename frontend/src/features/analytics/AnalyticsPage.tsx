@@ -21,8 +21,9 @@ type A = {
   expensesByCategory: { category: string; total: number }[];
   weight: { date: string; weightKg: number }[];
   goals: { _id: string; title: string; status: string; progress: number; deadline: string }[];
+  workByProject: { project: string | null; name: string; minutes: number }[];
 };
-const EXPORTS = [['expenses', 'Expenses'], ['meals', 'Meals'], ['workouts', 'Workouts'], ['measurements', 'Body measurements'], ['sleep', 'Sleep'], ['study', 'Study sessions'], ['water', 'Water'], ['habits', 'Habit completions'], ['journal', 'Journal']] as const;
+const EXPORTS = [['worklog', 'Work log'], ['worktasks', 'Work tasks'], ['expenses', 'Expenses'], ['meals', 'Meals'], ['workouts', 'Workouts'], ['measurements', 'Body measurements'], ['sleep', 'Sleep'], ['study', 'Study sessions'], ['water', 'Water'], ['habits', 'Habit completions'], ['journal', 'Journal']] as const;
 
 function Chart({ title, children, className }: { title: string; children: React.ReactElement; className?: string }) {
   return <Panel title={title} className={className}><div className="h-52 -ml-2 print:h-44"><ResponsiveContainer>{children}</ResponsiveContainer></div></Panel>;
@@ -107,6 +108,13 @@ export default function AnalyticsPage() {
                 ))}</ul>
               )}
             </Panel>
+            {a.workByProject.length > 0 && (
+              <Panel title={`Work · ${k.workHours} h logged`}>
+                <ul className="space-y-3">{a.workByProject.map((w) => (
+                  <li key={w.project ?? 'none'}><div className="flex justify-between text-sm mb-1"><span className="truncate">{w.name}</span><span className="num shrink-0">{(w.minutes / 60).toFixed(1)} h</span></div><Progress value={w.minutes} max={a.workByProject[0].minutes} tone="water" label={w.name} /></li>
+                ))}</ul>
+              </Panel>
+            )}
             <Panel title={`Goals · ${k.goalsCompleted} completed, ${k.goalsActive} active`}>
               <ul className="space-y-3">{a.goals.filter((g) => g.status !== 'dropped').map((g) => (
                 <li key={g._id}><div className="flex justify-between text-sm mb-1 gap-3"><span className="truncate">{g.title}</span><span className="num shrink-0">{g.progress}%</span></div><Progress value={g.progress} tone={g.status === 'completed' ? 'leaf' : 'water'} label={g.title} /></li>

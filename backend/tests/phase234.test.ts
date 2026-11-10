@@ -1,3 +1,4 @@
+import { DEFAULT_DASHBOARD_WIDGETS } from '../src/config/defaults.js';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { app, connectTestDB, resetDB, closeDB, registerUser, auth } from './helpers.js';
@@ -297,7 +298,7 @@ describe('reminders, analytics, dashboard', () => {
     const { res, token } = await registerUser();
     await UserPreferenceModel.updateOne({ user: res.body.data.user._id }, { dashboardWidgets: [{ key: 'score', visible: true, size: 'md' }, { key: 'water', visible: false, size: 'sm' }] });
     const d = await request(app).get('/api/dashboard').set(auth(token));
-    expect(d.body.data.widgets.length).toBe(12);
+    expect(d.body.data.widgets.length).toBe(DEFAULT_DASHBOARD_WIDGETS.length);
     expect(d.body.data.widgets.find((w: { key: string }) => w.key === 'water').visible).toBe(false);
   });
 

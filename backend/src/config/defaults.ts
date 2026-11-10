@@ -68,14 +68,15 @@ export const DEFAULT_HABITS = [
 export const DEFAULT_DASHBOARD_WIDGETS = [
   { key: 'score', visible: true, size: 'md' },
   { key: 'habits', visible: true, size: 'md' },
+  { key: 'work', visible: true, size: 'md' },
+  { key: 'schedule', visible: true, size: 'md' },
   { key: 'workout', visible: true, size: 'sm' },
   { key: 'nutrition', visible: true, size: 'sm' },
   { key: 'water', visible: true, size: 'sm' },
-  { key: 'schedule', visible: true, size: 'sm' },
   { key: 'study', visible: true, size: 'sm' },
   { key: 'sleep', visible: true, size: 'sm' },
   { key: 'finance', visible: true, size: 'sm' },
-  { key: 'goals', visible: true, size: 'sm' },
-  { key: 'profile', visible: true, size: 'sm' },
+  { key: 'goals', visible: true, size: 'md' },
+  { key: 'profile', visible: true, size: 'md' },
   { key: 'weekly', visible: true, size: 'lg' },
 ];

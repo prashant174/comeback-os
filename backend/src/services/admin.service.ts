@@ -8,7 +8,8 @@ import { revokeAllForUser } from './token.service.js';
 import { dayKey, lastNDays } from '../utils/date.js';
 
 /** Collections whose documents count as "the user did something" (for activity metrics). */
-const ACTIVITY_MODELS = ['HabitLog', 'WaterLog', 'MealEntry', 'WorkoutLog', 'StudySession', 'SleepRecord', 'Journal', 'Expense', 'BodyMeasurement', 'GroomingLog'];
+// Only collections written by user actions (seeded starter data would count every signup as "active")
+const ACTIVITY_MODELS = ['HabitLog', 'WaterLog', 'MealEntry', 'WorkoutLog', 'StudySession', 'SleepRecord', 'Journal', 'Expense', 'BodyMeasurement', 'GroomingLog', 'RoutineDay', 'DayOverride', 'Feedback', 'WorkTask', 'WorkLog', 'Requirement', 'Meeting', 'ChangeLog'];
 const FREE_TIER_BYTES = 512 * 1024 * 1024; // MongoDB Atlas M0
 
 export const audit = (admin: string, action: string, target?: { _id?: unknown; email?: string } | null, details?: unknown) =>

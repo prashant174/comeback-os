@@ -12,7 +12,7 @@ import { DAY_LETTER } from '@/lib/date';
 export type FieldDef = {
   name: string;
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'date' | 'time' | 'select' | 'checkbox' | 'tags' | 'days' | 'url';
+  type: 'text' | 'textarea' | 'number' | 'date' | 'time' | 'select' | 'multiselect' | 'checkbox' | 'tags' | 'days' | 'url';
   required?: boolean;
   min?: number;
   max?: number;
@@ -42,6 +42,7 @@ function buildSchema(fields: FieldDef[]) {
       }
       case 'checkbox': s = z.boolean().default(false); break;
       case 'days': s = z.array(z.number()).min(1, 'Pick at least one day'); break;
+      case 'multiselect': s = z.array(z.string()).default([]); break;
       case 'tags': s = z.union([z.string(), z.array(z.string())]).transform((v) => (Array.isArray(v) ? v : v.split(',').map((x) => x.trim()).filter(Boolean))); break;
       case 'date': s = f.required ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date') : z.string().optional().nullable().transform((v) => v || null); break;
       case 'time': s = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Pick a time'); break;
@@ -75,7 +76,7 @@ export function FormDialog({ open, onOpenChange, title, description, fields, ini
     const d: Record<string, unknown> = {};
     for (const f of fields) {
       const v = initial?.[f.name];
-      d[f.name] = f.type === 'checkbox' ? Boolean(v) : f.type === 'tags' ? (Array.isArray(v) ? v.join(', ') : v ?? '') : f.type === 'days' ? (v ?? [1, 2, 3, 4, 5]) : v ?? (f.type === 'select' ? f.options?.[0]?.value ?? '' : '');
+      d[f.name] = f.type === 'checkbox' ? Boolean(v) : f.type === 'tags' ? (Array.isArray(v) ? v.join(', ') : v ?? '') : f.type === 'days' ? (v ?? [1, 2, 3, 4, 5]) : f.type === 'multiselect' ? ((v as string[] | undefined) ?? []).map(String) : v ?? (f.type === 'select' ? f.options?.[0]?.value ?? '' : '');
       if (f.type === 'select' && v !== undefined && v !== null) d[f.name] = String(v);
     }
     return d;
@@ -99,6 +100,29 @@ export function FormDialog({ open, onOpenChange, title, description, fields, ini
                   <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} label={f.label} />{f.label}
                 </label>
               )} />
+            );
+          }
+          if (f.type === 'multiselect') {
+            return (
+              <Controller key={f.name} control={control} name={f.name} render={({ field }) => {
+                const val = (field.value as string[]) ?? [];
+                return (
+                  <fieldset className="sm:col-span-2">
+                    <legend className="field-label mb-1.5">{f.label}</legend>
+                    {!f.options?.length ? <p className="hint">{f.hint ?? 'Nothing to choose yet.'}</p> : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {f.options.map((o) => {
+                          const on = val.includes(o.value);
+                          return (
+                            <button type="button" key={o.value} aria-pressed={on} onClick={() => field.onChange(on ? val.filter((x) => x !== o.value) : [...val, o.value])}
+                              className={cn('h-8 px-3 rounded-full text-sm border', on ? 'bg-leaf-soft text-leaf-ink border-leaf/40' : 'border-line text-muted hover:bg-sunken')}>{o.label}</button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </fieldset>
+                );
+              }} />
             );
           }
           if (f.type === 'days') {

@@ -74,6 +74,21 @@ Auth (rotation + reuse detection), settings, dashboard, habits, water, theme, re
 | "Leave day" on-demand routine (seeded, also for existing users), reminders with "stay quiet on leave" | ✅ |
 | Leave banner + undo on Routine page, upcoming leaves list, "On leave today?" on dashboard | ✅ |
 
+## Work module ✅
+| Feature | Status |
+|---|---|
+| Projects (status, priority, dates, progress, links, tech stack, stakeholders, archive) + project detail view | ✅ |
+| Kanban tasks: To do / In progress / Blocked (reason required) / Done, drag-and-drop on desktop, status buttons on phones, checklist, estimates, owner | ✅ |
+| Board views: all / today / overdue / this week, per-project filter | ✅ |
+| Requirement log → one-click task; finishing the task marks the requirement delivered | ✅ |
+| Meeting notes with attendees, decisions, action items → one-click tasks | ✅ |
+| Daily work log with quick 15m/30m/1h/2h entry; finished tasks listed per day | ✅ |
+| Weekly status report: auto-generated, editable, copy for WhatsApp/email or print to PDF | ✅ |
+| Change / deploy log per project (Dev / UAT / Live) | ✅ |
+| Stakeholders (name, department, role only — no contact details stored) | ✅ |
+| Dashboard "Work today" widget (not part of the daily score), 9:30 AM due-task notification (silent on leave), analytics hours per project, CSV export | ✅ |
+| Admin sees counts only; deleting a user removes their work data | ✅ |
+
 ## Phase 5 — AI & hardening ⏳ next
 - [ ] Comeback AI (OpenAI / Gemini / Claude configurable, server-side keys, uses recorded data, graceful fallback, no medical advice)
 - [ ] Weekly AI summary

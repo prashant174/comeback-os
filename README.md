@@ -4,7 +4,7 @@
 
 Personal life-management platform: habits, water, routine, fitness, nutrition, learning, finance and more — measured against targets you set. Full-stack: React + TypeScript frontend, Express + TypeScript API, MongoDB.
 
-**Current state: Phases 1–4 complete** — auth, settings, dashboard, habits, water, daily routine, fitness, nutrition, learning, finance, grooming, sleep, goals, journal, analytics/exports, reminders & notifications. Phase 5 (AI assistant) is next. See [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+**Current state: Phases 1–4 complete** — auth, settings, dashboard, habits, water, daily routine, **work (projects, Kanban, requirements, meetings, weekly report)**, fitness, nutrition, learning, finance, grooming, sleep, goals, journal, analytics/exports, reminders & notifications. Phase 5 (AI assistant) is next. See [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Use it on your phone, from anywhere (free)
 Comeback OS is an installable app (PWA). Host it free on Render + MongoDB Atlas and add it to your home screen — full guide: **[docs/FREE_HOSTING.md](docs/FREE_HOSTING.md)**.
